@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard – Secure Voice</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<!-- Admin Top Bar -->
+<div class="admin-bar">
+    <div class="brand">🛡️ Secure Voice</div>
+    <div class="right">
+        <span class="admin-label">🔐 Admin</span>
+        <a href="/admin/logout" class="logout-link">Logout →</a>
+    </div>
+</div>
+
+<!-- Dashboard -->
+<div class="page wide" style="padding: 28px 24px;">
+
+    <div style="margin-bottom:22px;">
+        <h1 style="font-size:22px; font-weight:800; margin-bottom:4px;">Complaint Dashboard</h1>
+        <p style="color:#888; font-size:14px;">View and manage all submitted complaints.</p>
+    </div>
+
+    <!-- Alert box -->
+    <div id="msgBox" style="display:none; margin-bottom:16px;"></div>
+
+    <!-- Stats Tiles -->
+    <div class="stats-row" id="statsRow">
+        <div class="stat-tile t-total">
+            <div class="num" id="s-total">—</div>
+            <div class="lbl">Total</div>
+        </div>
+        <div class="stat-tile t-sub">
+            <div class="num" id="s-submitted">—</div>
+            <div class="lbl">Submitted</div>
+        </div>
+        <div class="stat-tile t-review">
+            <div class="num" id="s-review">—</div>
+            <div class="lbl">In Review</div>
+        </div>
+        <div class="stat-tile t-done">
+            <div class="num" id="s-resolved">—</div>
+            <div class="lbl">Resolved</div>
+        </div>
+    </div>
+
+    <!-- Filter buttons + search -->
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; align-items:center;">
+        <button class="btn-sm active-filter" onclick="setFilter('ALL', this)">All</button>
+        <button class="btn-sm" onclick="setFilter('SUBMITTED', this)">📥 Submitted</button>
+        <button class="btn-sm" onclick="setFilter('IN_REVIEW', this)">🔍 In Review</button>
+        <button class="btn-sm" onclick="setFilter('RESOLVED', this)">✅ Resolved</button>
+        <input id="searchBox" type="text" placeholder="Search message or ID..."
+               style="margin-left:auto; padding:7px 12px; background:#0f0e1a; border:1px solid #2d2b45; border-radius:6px; color:#e8e8f0; font-size:13px; outline:none; width:210px;"
+               oninput="renderTable()">
+    </div>
+
+    <!-- Complaints Table -->
+    <div class="table-wrap">
+        <table>
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Tracking ID</th>
+                <th>Category</th>
+                <th>Message Preview</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+            <tbody id="tableBody">
+            <tr>
+                <td colspan="7" style="text-align:center; padding:32px; color:#555;">Loading...</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<!-- ── Modal: View & Update Complaint ──────────────────────── -->
+<div class="overlay" id="overlay" onclick="closeIfOutside(event)">
+    <div class="modal">
+
+        <div class="modal-top">
+            <h3>Complaint Details</h3>
+            <button class="close-btn" onclick="closeModal()">✕</button>
+        </div>
+
+        <!-- Complaint info -->
+        <div class="detail-line">
+            <span class="key">Tracking ID</span>
+            <span class="mono" id="m-id"></span>
+        </div>
+        <div class="detail-line">
+            <span class="key">Category</span>
+            <span id="m-category"></span>
+        </div>
+        <div class="detail-line">
+            <span class="key">Status</span>
+            <span id="m-status"></span>
+        </div>
+        <div class="detail-line">
+            <span class="key">Submitted</span>
+            <span id="m-date" style="color:#888; font-size:13px;"></span>
+        </div>
+
+        <!-- Full message -->
+        <div style="font-size:11px; color:#888; font-weight:600; text-transform:uppercase; margin:14px 0 6px;">Message</div>
+        <div class="msg-body" id="m-message"></div>
+
+        <div class="divider"></div>
+
+        <!-- Update section -->
+        <div style="font-size:12px; color:#888; font-weight:700; text-transform:uppercase; margin-bottom:12px;">Update Status</div>
+
+        <div class="field" style="margin-bottom:12px;">
+            <label>New Status</label>
+            <select id="m-newStatus">
+                <option value="SUBMITTED">📥 SUBMITTED</option>
+                <option value="IN_REVIEW">🔍 IN REVIEW</option>
+                <option value="RESOLVED">✅ RESOLVED</option>
+            </select>
+        </div>
+
+        <div class="field" style="margin-bottom:0;">
+            <label>Admin Notes (optional)</label>
+            <textarea id="m-notes" rows="3" placeholder="Explain what action was taken..."></textarea>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn-sm" onclick="closeModal()">Cancel</button>
+            <button class="btn-primary" style="width:auto; padding:10px 24px;" onclick="updateStatus()">
+                💾 Update
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    var allComplaints = [];   // all data from API
+    var currentFilter = 'ALL';
+    var selectedComplaintId = null;  // which complaint is open in modal
+
+    // ── Load data when page opens ──────────────────────────
+    window.onload = function() {
+        loadStats();
+        loadComplaints();
+    };
+
+    // ── Load stats tiles ───────────────────────────────────
+    async function loadStats() {
+        try {
+            var r = await fetch('/admin/stats');
+            if (r.status === 401 || r.status === 403) { window.location = '/admin/login'; return; }
+            var d = await r.json();
+            document.getElementById('s-total').textContent     = d.total;
+            document.getElementById('s-submitted').textContent = d.submitted;
+            document.getElementById('s-review').textContent    = d.inReview;
+            document.getElementById('s-resolved').textContent  = d.resolved;
+        } catch(e) { console.error('Stats error', e); }
+    }
+
+    // ── Load all complaints ────────────────────────────────
+    async function loadComplaints() {
+        try {
+            var r = await fetch('/admin/complaints');
+            if (r.status === 401 || r.status === 403) { window.location = '/admin/login'; return; }
+            allComplaints = await r.json();
+            renderTable();
+        } catch(e) {
+            document.getElementById('tableBody').innerHTML =
+                '<tr><td colspan="7" style="text-align:center;padding:32px;color:#f08080;">Failed to load. Is the server running?</td></tr>';
+        }
+    }
+
+    // ── Render the table (called after filter/search changes) ──
+    function renderTable() {
+        var search = document.getElementById('searchBox').value.toLowerCase();
+
+        var filtered = allComplaints.filter(function(c) {
+            var matchFilter = currentFilter === 'ALL' || c.status === currentFilter;
+            var matchSearch = !search || c.trackingId.toLowerCase().includes(search) || c.message.toLowerCase().includes(search);
+            return matchFilter && matchSearch;
+        });
+
+        if (filtered.length === 0) {
+            document.getElementById('tableBody').innerHTML =
+                '<tr><td colspan="7" style="text-align:center;padding:32px;color:#555;">No complaints found.</td></tr>';
+            return;
+        }
+
+        var catIcon = { Academic:'🎓', Hostel:'🏠', Misconduct:'⚠️', Other:'📋' };
+        var rows = filtered.map(function(c, i) {
+            var badgeClass = 'badge badge-' + c.status.toLowerCase();
+            var date = new Date(c.createdAt).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+            return '<tr>' +
+                '<td style="color:#555;">' + (i+1) + '</td>' +
+                '<td class="mono">' + c.trackingId + '</td>' +
+                '<td>' + (catIcon[c.category]||'') + ' ' + c.category + '</td>' +
+                '<td class="preview">' + escHtml(c.message) + '</td>' +
+                '<td><span class="' + badgeClass + '">' + c.status.replace('_',' ') + '</span></td>' +
+                '<td style="color:#888; font-size:13px;">' + date + '</td>' +
+                '<td><button class="btn-sm" onclick="openModal(' + c.id + ')">View / Update</button></td>' +
+            '</tr>';
+        }).join('');
+
+        document.getElementById('tableBody').innerHTML = rows;
+    }
+
+    // ── Filter buttons ─────────────────────────────────────
+    function setFilter(filter, btn) {
+        currentFilter = filter;
+        // Update button styles
+        document.querySelectorAll('.active-filter').forEach(function(b) { b.classList.remove('active-filter'); });
+        btn.classList.add('active-filter');
+        renderTable();
+    }
+
+    // ── Open modal with a complaint's data ─────────────────
+    function openModal(id) {
+        var c = allComplaints.find(function(x) { return x.id === id; });
+        if (!c) return;
+
+        selectedComplaintId = id;
+
+        var catIcon = { Academic:'🎓', Hostel:'🏠', Misconduct:'⚠️', Other:'📋' };
+        var icons = { SUBMITTED:'📥', IN_REVIEW:'🔍', RESOLVED:'✅' };
+        var badgeClass = 'badge badge-' + c.status.toLowerCase();
+
+        document.getElementById('m-id').textContent       = c.trackingId;
+        document.getElementById('m-category').textContent = (catIcon[c.category]||'') + ' ' + c.category;
+        document.getElementById('m-status').innerHTML     = '<span class="' + badgeClass + '">' + (icons[c.status]||'') + ' ' + c.status.replace('_',' ') + '</span>';
+        document.getElementById('m-date').textContent     = new Date(c.createdAt).toLocaleString('en-IN');
+        document.getElementById('m-message').textContent  = c.message;
+        document.getElementById('m-newStatus').value      = c.status;
+        document.getElementById('m-notes').value          = c.adminNotes || '';
+
+        document.getElementById('overlay').classList.add('open');
+    }
+
+    // ── Update status from modal ───────────────────────────
+    async function updateStatus() {
+        if (!selectedComplaintId) return;
+
+        var newStatus  = document.getElementById('m-newStatus').value;
+        var adminNotes = document.getElementById('m-notes').value.trim();
+
+        try {
+            var r = await fetch('/admin/update', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: String(selectedComplaintId), status: newStatus, adminNotes: adminNotes })
+            });
+
+            var d = await r.json();
+
+            if (d.success) {
+                closeModal();
+                loadStats();
+                loadComplaints();
+                showMsg('success', '✅ ' + d.message);
+            } else {
+                showMsg('error', '❌ ' + d.message);
+            }
+        } catch(e) {
+            showMsg('error', '❌ Network error.');
+        }
+    }
+
+    function closeModal() {
+        document.getElementById('overlay').classList.remove('open');
+        selectedComplaintId = null;
+    }
+
+    function closeIfOutside(e) {
+        if (e.target === document.getElementById('overlay')) closeModal();
+    }
+
+    function showMsg(type, text) {
+        var box = document.getElementById('msgBox');
+        box.className = 'msg ' + type;
+        box.textContent = text;
+        box.style.display = 'block';
+        setTimeout(function() { box.style.display = 'none'; }, 4000);
+    }
+
+    function escHtml(str) {
+        return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+</script>
+
+</body>
+</html>

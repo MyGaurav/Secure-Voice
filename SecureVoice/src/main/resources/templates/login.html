@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Login – Secure Voice</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="login-page">
+
+<div class="login-box">
+
+    <div class="login-logo">🛡️</div>
+    <h2>Admin Login</h2>
+    <p class="login-sub">Secure Voice · Staff Access</p>
+
+    <!-- Show error if Spring Security says wrong credentials -->
+    <div th:if="${param.error}" class="msg error">
+        ❌ Wrong username or password.
+    </div>
+
+    <!-- Show success if they just logged out -->
+    <div th:if="${param.logout}" class="msg success">
+        ✅ You have been logged out.
+    </div>
+
+    <!--
+        This form POSTs to /admin/login
+        Spring Security intercepts it, checks the username/password
+        The field names MUST be "username" and "password"
+    -->
+    <form th:action="@{/admin/login}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+        <div class="field">
+            <label>Username</label>
+            <input type="text" name="username" placeholder="admin" required>
+        </div>
+
+        <div class="field">
+            <label>Password</label>
+            <input type="password" name="password" placeholder="••••••••" required>
+        </div>
+
+        <button type="submit" class="btn-primary">Login →</button>
+    </form>
+
+    <a href="/index.html" class="back-link">← Back to complaint portal</a>
+</div>
+
+</body>
+</html>

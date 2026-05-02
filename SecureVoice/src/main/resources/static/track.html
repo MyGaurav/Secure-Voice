@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Complaint – Secure Voice</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<!-- Navigation Bar -->
+<nav class="navbar">
+    <a href="/index.html" class="nav-brand">🛡️ Secure <span>Voice</span></a>
+    <div class="nav-links">
+        <a href="/index.html" class="nav-link">Submit</a>
+        <a href="/track.html" class="nav-link active">Track Status</a>
+    </div>
+</nav>
+
+<!-- Main Page -->
+<div class="page">
+
+    <div class="page-title">
+        <span class="icon">🔎</span>
+        <h1>Track Your Complaint</h1>
+        <p>Enter your tracking ID to see the current status.</p>
+    </div>
+
+    <!-- Search Card -->
+    <div class="card">
+        <div id="msgBox" style="display:none;"></div>
+
+        <div class="field">
+            <label>Tracking ID</label>
+            <input type="text" id="trackingInput"
+                   placeholder="e.g. SVX-AB12CD34"
+                   style="font-family: monospace; font-size: 17px; letter-spacing: 1px;">
+        </div>
+
+        <button class="btn-primary" id="trackBtn" onclick="trackComplaint()">
+            🔍 Check Status
+        </button>
+    </div>
+
+    <!-- Result Card – hidden until we get a response -->
+    <div id="resultCard" style="display:none; margin-top: 20px;" class="card">
+
+        <!-- Tracking ID + Badge -->
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+            <div>
+                <div style="font-size:11px; color:#888; font-weight:600; text-transform:uppercase; margin-bottom:5px;">Tracking ID</div>
+                <div class="mono" style="font-size:18px; font-weight:800;" id="r-id"></div>
+            </div>
+            <div id="r-badge"></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Progress Steps (visual indicator) -->
+        <div class="progress-steps">
+            <div class="step" id="step1">
+                <div class="step-dot">📥</div>
+                <div class="step-label">Submitted</div>
+            </div>
+            <div class="step" id="step2">
+                <div class="step-dot">🔍</div>
+                <div class="step-label">In Review</div>
+            </div>
+            <div class="step" id="step3">
+                <div class="step-dot">✅</div>
+                <div class="step-label">Resolved</div>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Category + Date -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:16px;">
+            <div style="background:#0f0e1a; border:1px solid #2d2b45; border-radius:8px; padding:14px;">
+                <div style="font-size:11px; color:#888; font-weight:600; text-transform:uppercase; margin-bottom:5px;">Category</div>
+                <div id="r-category" style="font-weight:600;"></div>
+            </div>
+            <div style="background:#0f0e1a; border:1px solid #2d2b45; border-radius:8px; padding:14px;">
+                <div style="font-size:11px; color:#888; font-weight:600; text-transform:uppercase; margin-bottom:5px;">Submitted On</div>
+                <div id="r-date" style="font-size:13px; font-weight:600;"></div>
+            </div>
+        </div>
+
+        <!-- Admin Notes (only shown if admin wrote something) -->
+        <div id="notesArea" style="display:none;">
+            <div style="font-size:11px; color:#888; font-weight:600; text-transform:uppercase; margin-bottom:6px;">Admin Response</div>
+            <div class="msg-body" id="r-notes"></div>
+        </div>
+
+        <!-- Status message in plain English -->
+        <div style="text-align:center; color:#888; font-size:13px; margin-top:14px;" id="r-help"></div>
+
+    </div>
+
+    <div class="note" style="margin-top:18px;">
+        💡 After submitting, you received a tracking ID like <span style="font-family:monospace; color:#7c6fe0;">SVX-XXXXXXXX</span>.
+        Enter it above. Your identity remains completely private — the ID is the only link.
+    </div>
+
+</div>
+
+<script>
+    // Pre-fill from localStorage if user just came from submission page
+    window.onload = function() {
+        var saved = localStorage.getItem('lastTrackingId');
+        if (saved) document.getElementById('trackingInput').value = saved;
+    };
+
+    // Allow pressing Enter key to search
+    document.getElementById('trackingInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') trackComplaint();
+    });
+
+    // ── Track a complaint ──────────────────────────────────
+    async function trackComplaint() {
+        var id = document.getElementById('trackingInput').value.trim().toUpperCase();
+
+        if (!id) { showMsg('error', '⚠️ Please enter a tracking ID.'); return; }
+
+        // Quick format check: must be SVX- followed by 8 characters
+        if (!/^SVX-[A-Z0-9]{8}$/.test(id)) {
+            showMsg('error', '⚠️ Invalid format. Should be like: SVX-AB12CD34');
+            return;
+        }
+
+        var btn = document.getElementById('trackBtn');
+        btn.disabled = true;
+        btn.textContent = 'Checking...';
+        document.getElementById('resultCard').style.display = 'none';
+        clearMsg();
+
+        try {
+            var response = await fetch('/api/complaint/' + id);
+            var data = await response.json();
+
+            if (response.ok) {
+                showResult(data);
+            } else {
+                showMsg('error', '🔍 No complaint found with ID: ' + id);
+            }
+
+        } catch (err) {
+            showMsg('error', '❌ Network error. Please try again.');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '🔍 Check Status';
+        }
+    }
+
+    // ── Fill in the result card with data from API ─────────
+    function showResult(data) {
+        document.getElementById('r-id').textContent = data.trackingId;
+
+        // Status badge with colour class
+        var badgeClass = 'badge badge-' + data.status.toLowerCase();
+        var icons = { SUBMITTED: '📥', IN_REVIEW: '🔍', RESOLVED: '✅' };
+        document.getElementById('r-badge').innerHTML =
+            '<span class="' + badgeClass + '">' + (icons[data.status] || '') + ' ' + data.status.replace('_', ' ') + '</span>';
+
+        // Category with emoji
+        var catIcons = { Academic: '🎓', Hostel: '🏠', Misconduct: '⚠️', Other: '📋' };
+        document.getElementById('r-category').textContent = (catIcons[data.category] || '') + ' ' + data.category;
+
+        // Date formatting
+        var d = new Date(data.submittedAt);
+        document.getElementById('r-date').textContent = d.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+
+        // Highlight progress steps
+        document.getElementById('step1').classList.remove('done');
+        document.getElementById('step2').classList.remove('done');
+        document.getElementById('step3').classList.remove('done');
+
+        if (data.status === 'SUBMITTED') {
+            document.getElementById('step1').classList.add('done');
+        } else if (data.status === 'IN_REVIEW') {
+            document.getElementById('step1').classList.add('done');
+            document.getElementById('step2').classList.add('done');
+        } else if (data.status === 'RESOLVED') {
+            document.getElementById('step1').classList.add('done');
+            document.getElementById('step2').classList.add('done');
+            document.getElementById('step3').classList.add('done');
+        }
+
+        // Admin notes
+        if (data.adminNotes) {
+            document.getElementById('notesArea').style.display = 'block';
+            document.getElementById('r-notes').textContent = data.adminNotes;
+        } else {
+            document.getElementById('notesArea').style.display = 'none';
+        }
+
+        // Plain English status help
+        var help = {
+            SUBMITTED: 'Your complaint has been received and is waiting to be reviewed.',
+            IN_REVIEW: 'An admin is currently reviewing your complaint.',
+            RESOLVED:  'Your complaint has been reviewed and resolved.'
+        };
+        document.getElementById('r-help').textContent = help[data.status] || '';
+
+        document.getElementById('resultCard').style.display = 'block';
+    }
+
+    function showMsg(type, text) {
+        var box = document.getElementById('msgBox');
+        box.className = 'msg ' + type;
+        box.textContent = text;
+        box.style.display = 'block';
+    }
+
+    function clearMsg() {
+        document.getElementById('msgBox').style.display = 'none';
+    }
+</script>
+
+</body>
+</html>

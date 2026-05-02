@@ -1,0 +1,439 @@
+/* =====================================================
+   Secure Voice – Stylesheet
+   One file used by all pages (index, track, dashboard)
+   ===================================================== */
+
+/* --- Base Reset --- */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #0f0e1a;
+    color: #e8e8f0;
+    min-height: 100vh;
+}
+
+/* --- Top Nav Bar --- */
+.navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 32px;
+    background: #1a1830;
+    border-bottom: 1px solid #2d2b45;
+}
+
+.nav-brand {
+    font-size: 18px;
+    font-weight: 700;
+    text-decoration: none;
+    color: #e8e8f0;
+}
+
+.nav-brand span { color: #7c6fe0; }
+
+.nav-links { display: flex; gap: 6px; }
+
+.nav-link {
+    padding: 7px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    color: #888;
+    font-size: 14px;
+    transition: 0.2s;
+}
+
+.nav-link:hover { color: #e8e8f0; background: #2d2b45; }
+.nav-link.active { background: #7c6fe0; color: #fff; }
+
+/* --- Page Wrapper --- */
+.page {
+    max-width: 680px;
+    margin: 50px auto;
+    padding: 0 20px;
+}
+
+.page.wide { max-width: 1100px; }
+
+/* --- Card --- */
+.card {
+    background: #1a1830;
+    border: 1px solid #2d2b45;
+    border-radius: 12px;
+    padding: 32px;
+}
+
+/* --- Page Title --- */
+.page-title {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.page-title .icon { font-size: 42px; display: block; margin-bottom: 12px; }
+.page-title h1 { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+.page-title p { color: #888; font-size: 15px; }
+
+/* --- Form Fields --- */
+.field { margin-bottom: 20px; }
+
+.field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 7px;
+}
+
+.field input,
+.field textarea,
+.field select {
+    width: 100%;
+    padding: 12px 14px;
+    background: #0f0e1a;
+    border: 1px solid #2d2b45;
+    border-radius: 8px;
+    color: #e8e8f0;
+    font-size: 15px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.field textarea { resize: vertical; min-height: 130px; }
+.field select { appearance: none; cursor: pointer; }
+.field input::placeholder,
+.field textarea::placeholder { color: #44435a; }
+.field input:focus,
+.field textarea:focus,
+.field select:focus { border-color: #7c6fe0; }
+
+.char-hint {
+    text-align: right;
+    font-size: 12px;
+    color: #555;
+    margin-top: 4px;
+}
+
+/* --- Buttons --- */
+.btn-primary {
+    width: 100%;
+    padding: 13px;
+    background: #7c6fe0;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-primary:hover { background: #6a5ed4; }
+.btn-primary:disabled { background: #3d3760; cursor: not-allowed; }
+
+.btn-sm {
+    padding: 6px 14px;
+    border: 1px solid #2d2b45;
+    border-radius: 6px;
+    background: transparent;
+    color: #aaa;
+    font-size: 13px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-sm:hover { border-color: #7c6fe0; color: #7c6fe0; }
+
+/* --- Alert Messages --- */
+.msg {
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 18px;
+}
+
+.msg.success { background: #0e2e1a; border: 1px solid #1e6b3a; color: #5edb8f; }
+.msg.error   { background: #2e0e0e; border: 1px solid #6b1e1e; color: #f08080; }
+.msg.info    { background: #0e1a2e; border: 1px solid #1e3a6b; color: #80b0f0; }
+
+/* --- Tracking ID Display --- */
+.tracking-box {
+    border: 2px solid #7c6fe0;
+    border-radius: 10px;
+    padding: 24px;
+    text-align: center;
+    margin-top: 24px;
+    background: rgba(124, 111, 224, 0.05);
+}
+
+.tracking-box .label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+.tracking-box .id-value {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    color: #7c6fe0;
+    margin-bottom: 10px;
+}
+
+.tracking-box .copy-btn {
+    background: none;
+    border: 1px solid #7c6fe0;
+    border-radius: 20px;
+    color: #7c6fe0;
+    padding: 5px 16px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.tracking-box .copy-btn:hover { background: rgba(124, 111, 224, 0.12); }
+
+/* --- Status Badge --- */
+.badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-submitted { background: #0e1a2e; color: #80b0f0; border: 1px solid #1e3a6b; }
+.badge-in_review { background: #2e1e00; color: #f0c060; border: 1px solid #6b4a00; }
+.badge-resolved  { background: #0e2e1a; color: #5edb8f; border: 1px solid #1e6b3a; }
+
+/* --- Progress Steps --- */
+.progress-steps {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 20px 0;
+    position: relative;
+}
+
+.progress-steps::before {
+    content: '';
+    position: absolute;
+    top: 14px;
+    left: 0; right: 0;
+    height: 2px;
+    background: #2d2b45;
+    z-index: 0;
+}
+
+.step {
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    flex: 1;
+}
+
+.step-dot {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: #2d2b45;
+    margin: 0 auto 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+.step.done .step-dot { background: #7c6fe0; }
+.step-label { font-size: 11px; color: #555; font-weight: 600; text-transform: uppercase; }
+.step.done .step-label { color: #aaa; }
+
+/* --- Admin Stat Tiles --- */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.stat-tile {
+    background: #1a1830;
+    border: 1px solid #2d2b45;
+    border-radius: 10px;
+    padding: 18px 20px;
+    text-align: center;
+}
+
+.stat-tile .num { font-size: 32px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
+.stat-tile .lbl { font-size: 11px; color: #888; font-weight: 600; text-transform: uppercase; }
+
+.stat-tile.t-total  .num { color: #e8e8f0; }
+.stat-tile.t-sub    .num { color: #80b0f0; }
+.stat-tile.t-review .num { color: #f0c060; }
+.stat-tile.t-done   .num { color: #5edb8f; }
+
+/* --- Admin Table --- */
+.table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid #2d2b45; }
+
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+
+thead th {
+    padding: 12px 14px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: #131224;
+    border-bottom: 1px solid #2d2b45;
+}
+
+tbody tr { border-bottom: 1px solid #1f1d35; transition: background 0.15s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: #1f1d35; }
+tbody td { padding: 13px 14px; vertical-align: middle; }
+
+.preview {
+    max-width: 240px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #888;
+}
+
+.mono { font-family: monospace; color: #7c6fe0; font-size: 13px; }
+
+/* --- Modal --- */
+.overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.overlay.open { display: flex; }
+
+.modal {
+    background: #1a1830;
+    border: 1px solid #2d2b45;
+    border-radius: 12px;
+    padding: 30px;
+    width: 100%;
+    max-width: 500px;
+}
+
+.modal-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal-top h3 { font-size: 17px; font-weight: 700; }
+
+.close-btn {
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.detail-line {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.detail-line .key { color: #888; min-width: 100px; flex-shrink: 0; font-weight: 600; }
+
+.msg-body {
+    background: #0f0e1a;
+    border: 1px solid #2d2b45;
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 14px;
+    line-height: 1.7;
+    max-height: 160px;
+    overflow-y: auto;
+    margin: 12px 0;
+    white-space: pre-wrap;
+}
+
+.modal-footer {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+/* --- Divider --- */
+.divider { height: 1px; background: #2d2b45; margin: 20px 0; }
+
+/* --- Login Page --- */
+.login-page { display: flex; align-items: center; justify-content: center; }
+
+.login-box {
+    background: #1a1830;
+    border: 1px solid #2d2b45;
+    border-radius: 14px;
+    padding: 40px 36px;
+    width: 100%;
+    max-width: 380px;
+    margin: 60px auto;
+    text-align: center;
+}
+
+.login-logo { font-size: 48px; margin-bottom: 12px; }
+.login-box h2 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+.login-sub { color: #888; font-size: 13px; margin-bottom: 24px; }
+.login-box .field { text-align: left; }
+.back-link { display: block; margin-top: 16px; color: #666; font-size: 13px; text-decoration: none; }
+.back-link:hover { color: #aaa; }
+
+/* --- Admin Top Bar --- */
+.admin-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 13px 28px;
+    background: #1a1830;
+    border-bottom: 1px solid #2d2b45;
+}
+
+.admin-bar .brand { font-size: 16px; font-weight: 700; }
+.admin-bar .right { display: flex; align-items: center; gap: 14px; }
+.admin-label { background: #2d2b45; color: #7c6fe0; padding: 3px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.logout-link { color: #888; text-decoration: none; font-size: 13px; }
+.logout-link:hover { color: #f08080; }
+
+/* --- Info Note --- */
+.note {
+    margin-top: 18px;
+    padding: 14px 16px;
+    background: #0e1a2e;
+    border: 1px solid #1e3a6b;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #7090b0;
+    line-height: 1.7;
+}
+
+/* --- Responsive --- */
+@media (max-width: 600px) {
+    .navbar { padding: 12px 16px; }
+    .page { margin: 24px auto; padding: 0 14px; }
+    .card { padding: 20px; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+}

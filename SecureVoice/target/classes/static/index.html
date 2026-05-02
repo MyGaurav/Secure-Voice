@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Complaint – Secure Voice</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<!-- Navigation Bar -->
+<nav class="navbar">
+    <a href="/index.html" class="nav-brand">🛡️ Secure <span>Voice</span></a>
+    <div class="nav-links">
+        <a href="/index.html" class="nav-link active">Submit</a>
+        <a href="/track.html" class="nav-link">Track Status</a>
+    </div>
+</nav>
+
+<!-- Main Page -->
+<div class="page">
+
+    <!-- Title -->
+    <div class="page-title">
+        <span class="icon">📢</span>
+        <h1>Submit a Complaint</h1>
+        <p>100% anonymous. We never store your name or identity.</p>
+    </div>
+
+    <!-- Form Card -->
+    <div class="card">
+
+        <!-- This div shows success/error messages -->
+        <div id="msgBox" style="display:none;"></div>
+
+        <!-- Complaint Form -->
+        <div id="formArea">
+
+            <div class="field">
+                <label>Category</label>
+                <select id="category">
+                    <option value="">— Select a category —</option>
+                    <option value="Academic">🎓 Academic</option>
+                    <option value="Hostel">🏠 Hostel</option>
+                    <option value="Misconduct">⚠️ Misconduct</option>
+                    <option value="Other">📋 Other</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label>Your Complaint</label>
+                <textarea id="message" placeholder="Describe your complaint clearly (minimum 20 characters)..." maxlength="5000"></textarea>
+                <div class="char-hint" id="charCount">0 / 5000</div>
+            </div>
+
+            <button class="btn-primary" id="submitBtn" onclick="submitComplaint()">
+                🔒 Submit Anonymously
+            </button>
+
+        </div>
+
+        <!-- Tracking ID shown after successful submission -->
+        <div id="trackingBox" style="display:none;" class="tracking-box">
+            <div class="label">Your Tracking ID</div>
+            <div class="id-value" id="trackingIdText"></div>
+            <p style="color:#888; font-size:13px; margin-bottom:12px;">
+                Save this! You need it to check your complaint status.
+            </p>
+            <button class="copy-btn" onclick="copyId()">📋 Copy ID</button>
+            <div class="divider"></div>
+            <a href="/track.html" style="color:#7c6fe0; font-size:14px; text-decoration:none;">
+                → Go check your complaint status
+            </a>
+        </div>
+
+    </div>
+
+    <!-- Info note at the bottom -->
+    <div class="note">
+        🔐 <strong>Privacy:</strong> No name, email, or IP address is stored with your complaint.
+        Only your message and category are saved. You are completely anonymous.<br><br>
+        📏 <strong>Rules:</strong> Minimum 20 characters. Maximum 3 submissions per hour per device.
+    </div>
+
+</div>
+
+<script>
+    // ── Character counter ──────────────────────────────────
+    document.getElementById('message').addEventListener('input', function() {
+        document.getElementById('charCount').textContent = this.value.length + ' / 5000';
+    });
+
+    // ── Submit complaint to backend ────────────────────────
+    async function submitComplaint() {
+        var message  = document.getElementById('message').value.trim();
+        var category = document.getElementById('category').value;
+
+        // Basic checks before even calling the API
+        if (!category) { showMsg('error', '⚠️ Please select a category.'); return; }
+        if (message.length < 20) { showMsg('error', '⚠️ Complaint must be at least 20 characters.'); return; }
+
+        // Disable button while waiting for response
+        var btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.textContent = 'Submitting...';
+
+        try {
+            // fetch() sends an HTTP POST request to our Spring Boot backend
+            var response = await fetch('/api/complaint', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: message, category: category })
+            });
+
+            var data = await response.json();  // parse the JSON response
+
+            if (data.success) {
+                // Hide form, show tracking ID box
+                document.getElementById('formArea').style.display = 'none';
+                document.getElementById('trackingIdText').textContent = data.trackingId;
+                document.getElementById('trackingBox').style.display = 'block';
+                // Save to browser so track page can pre-fill it
+                localStorage.setItem('lastTrackingId', data.trackingId);
+            } else {
+                showMsg('error', '❌ ' + data.message);
+                btn.disabled = false;
+                btn.textContent = '🔒 Submit Anonymously';
+            }
+
+        } catch (err) {
+            showMsg('error', '❌ Network error. Is the server running?');
+            btn.disabled = false;
+            btn.textContent = '🔒 Submit Anonymously';
+        }
+    }
+
+    // ── Copy tracking ID to clipboard ─────────────────────
+    function copyId() {
+        var id = document.getElementById('trackingIdText').textContent;
+        navigator.clipboard.writeText(id).then(function() {
+            alert('Copied: ' + id);
+        });
+    }
+
+    // ── Show a message box ─────────────────────────────────
+    function showMsg(type, text) {
+        var box = document.getElementById('msgBox');
+        box.className = 'msg ' + type;
+        box.textContent = text;
+        box.style.display = 'block';
+    }
+</script>
+
+</body>
+</html>
